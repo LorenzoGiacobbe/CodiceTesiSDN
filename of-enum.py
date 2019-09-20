@@ -13,9 +13,6 @@ __email__ = "gregory.pickett@hellfiresecurity.com"
 __twitter__ = "@shogun7273"
 __status__ = "Production"
 
-## riassunto
-# fa le stesse cose di quello prima solo che capisce anche che tipologia di device ho ai singoli IP
-
 # Socket object needed
 import socket
 
@@ -75,79 +72,79 @@ arguments = argParser.parse_args()
 
 if arguments.targets != None:
 
-	#
-	for ip in fileinput.input([arguments.targets]):
-		# Check for Openflow service on TCP port 6633
+        #
+        for ip in fileinput.input([arguments.targets]):
+                # Check for Openflow service on TCP port 6633
 
-		#
-		try:
-			client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			client_socket.settimeout(5)
-			client_socket.connect((ip, arguments.port))	
+                #
+                try:
+                        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        client_socket.settimeout(5)
+                        client_socket.connect((ip, arguments.port))
 
-			# Build Hello
-			type = OFPT_HELLO
-			length = OFP_HEADER_LENGTH
-			xid = 0
-			header = struct.pack(OFP_HEADER_FORMAT, OFP_VERSION_1_0_0, type, length, xid)
-			client_socket.send(header)
+                        # Build Hello
+                        type = OFPT_HELLO
+                        length = OFP_HEADER_LENGTH
+                        xid = 0
+                        header = struct.pack(OFP_HEADER_FORMAT, OFP_VERSION_1_0_0, type, length, xid)
+                        client_socket.send(header)
 
-			# Listen for response ...
-			data = client_socket.recv(512)
+                        # Listen for response ...
+                        data = client_socket.recv(512)
 
-			# Next, Check to make sure data was returned before processing
-			if len(data) !=0:
+                        # Next, Check to make sure data was returned before processing
+                        if len(data) !=0:
 
-				#
-				version, msg_type, msg_length, xid = struct.unpack(OFP_HEADER_FORMAT, data[:8])
+                                #
+                                version, msg_type, msg_length, xid = struct.unpack(OFP_HEADER_FORMAT, data[:8])
 
-				#
-				if msg_type == OFPT_HELLO:
-					
-					# Make Feature Request
-					type = OFPT_FEATURES_REQUEST
-					length = OFP_HEADER_LENGTH
-					xid = 0
-					header = struct.pack(OFP_HEADER_FORMAT, OFP_VERSION_1_0_0, type, length, xid)
-					client_socket.send(header)
+                                #
+                                if msg_type == OFPT_HELLO:
 
-					# Listen for response ...
-					data = client_socket.recv(512)
+                                        # Make Feature Request
+                                        type = OFPT_FEATURES_REQUEST
+                                        length = OFP_HEADER_LENGTH
+                                        xid = 0
+                                        header = struct.pack(OFP_HEADER_FORMAT, OFP_VERSION_1_0_0, type, length, xid)
+                                        client_socket.send(header)
 
-					#
-					version, msg_type, msg_length, xid = struct.unpack(OFP_HEADER_FORMAT, data[:8])				
+                                        # Listen for response ...
+                                        data = client_socket.recv(512)
 
-					#
-					if msg_type == OFPT_FEATURES_REPLY:
+                                        #
+                                        version, msg_type, msg_length, xid = struct.unpack(OFP_HEADER_FORMAT, data[:8])
 
-						# Acknowledge enumeration
-						print('Openflow switch found at %s!' % ip)
+                                        #
+                                        if msg_type == OFPT_FEATURES_REPLY:
 
-					elif msg_type == OFPT_FEATURES_REQUEST:
+                                                # Acknowledge enumeration
+                                                print('Openflow switch found at %s!' % ip)
 
-						# Acknowledge enumeration
-						print('Openflow controller found at %s!' % ip)
+                                        elif msg_type == OFPT_FEATURES_REQUEST:
 
-					else:
+                                                # Acknowledge enumeration
+                                                print('Openflow controller found at %s!' % ip)
 
-						# Only interested in Openflow services
-						pass
+                                        else:
 
-				else:
+                                                # Only interested in Openflow services
+                                                pass
 
-					# Only interested in Openflow services
-					pass
+                                else:
 
-			client_socket.close()
+                                        # Only interested in Openflow services
+                                        pass
 
-		except socket.timeout:
-			
-			# Acknowledge timeout
-			print('Timeout!')
-			
-		except socket.error:
-		
-			# Acknowledge error
-			print('Error!')
+                        client_socket.close()
 
-	print('Finished enumeration!')
+                except socket.timeout:
+
+                        # Acknowledge timeout
+                        print('Timeout!')
+
+                except socket.error:
+
+                        # Acknowledge error
+                        print('Error!')
+
+        print('Finished enumeration!')

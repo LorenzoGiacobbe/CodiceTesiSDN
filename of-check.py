@@ -13,10 +13,6 @@ __email__ = "gregory.pickett@hellfiresecurity.com"
 __twitter__ = "@shogun7273"
 __status__ = "Production"
 
-## riassunto
-# prende come parametro un file che contiene degli IP ai quali manda dei messaggi HELLO 
-# se questi rispondono con dei HELLO usano il protocollo OF (e mi dice anche che versione del protocollo usano)
-
 # Socket object needed
 import socket
 
@@ -80,51 +76,49 @@ arguments = argParser.parse_args()
 
 ## se il file che ho messo contenente dei target da analizzare (quindi arguments.targets non vuoto) non e vuoto ciclo su di esso
 if arguments.targets != None:
-	#
-	if os.path.exists(arguments.targets):
+        #
+        if os.path.exists(arguments.targets):
 
-		for ip in fileinput.input([arguments.targets]):
-			# Check for Openflow service on TCP port 6633
+                for ip in fileinput.input([arguments.targets]):
+                        # Check for Openflow service on TCP port 6633
 
-			#
-			try:
-				client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-				client_socket.connect((ip, arguments.port))	
+                        #
+                        try:
+                                client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                                client_socket.connect((ip, arguments.port))
 
-				# Build
-				## gli mando un hello e se mi risponde con un hello vuol dire che usa OFP
-				type = OFPT_HELLO
-				length = OFP_HEADER_LENGTH
-				xid = 0
-				header = struct.pack(OFP_HEADER_FORMAT, OFP_VERSION_1_0_0, type, length, xid)
-				client_socket.send(header)
+                                # Build
+                                type = OFPT_HELLO
+                                length = OFP_HEADER_LENGTH
+                                xid = 0
+                                header = struct.pack(OFP_HEADER_FORMAT, OFP_VERSION_1_0_0, type, length, xid)
+                                client_socket.send(header)
 
-				# Listen for response ...
-				data = client_socket.recv(512)
+                                # Listen for response ...
+                                data = client_socket.recv(512)
 
-				# Next, Check to make sure data was returned before processing
-				if len(data) !=0:
+                                # Next, Check to make sure data was returned before processing
+                                if len(data) !=0:
 
-					#
-					version, msg_type, msg_length, xid = struct.unpack(OFP_HEADER_FORMAT, data[:8])
+                                        #
+                                        version, msg_type, msg_length, xid = struct.unpack(OFP_HEADER_FORMAT, data[:8])
 
-					#
-					if msg_type == OFPT_HELLO:
-						print('Openflow service (Version: %i) found at %s' % (version,ip))
-						# try:
-						with open(arguments.result, 'a') as res:
-							res.write(ip)
-								
-				client_socket.close()
+                                        #
+                                        if msg_type == OFPT_HELLO:
+                                                print('Openflow service (Version: %i) found at %s' % (version,ip))
+                                                with open(arguments.result, 'a') as res:
+                                                        res.write(ip)
 
-			except socket.error:
-				pass
+                                client_socket.close()
 
-		if os.path.exists(arguments.result):
-			print('Finished checks!')
-			print('Results saved in ' + arguments.result)
-		else:
-			print('None of the targets use Openflow')
+                        except socket.error:
+                                pass
 
-	else:
-		print('File with targets not found!')
+                if os.path.exists(arguments.result):
+                        print('Finished checks!')
+                        print('Results saved in ' + arguments.result)
+                else:
+                        print('None of the targets use Openflow')
+
+        else:
+                print('File with targets not found!')
